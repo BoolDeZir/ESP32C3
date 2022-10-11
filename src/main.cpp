@@ -7,7 +7,7 @@
 int led1 = 12;
 int led2 = 13;
 // GPIO where the DS18B20 is connected to
-const int oneWireBus = 8;
+const int oneWireBus = 9;
  // Setup a oneWire instance to communicate with any OneWire devices
 OneWire oneWire(oneWireBus);
 // Pass our oneWire reference to Dallas Temperature sensor 
@@ -19,11 +19,50 @@ float tempSensor1, tempSensor2;
 
 uint8_t sensor1[8] = { 0x28, 0xEE, 0x48, 0x67, 0x25, 0x16, 0x02, 0xBE };
 uint8_t sensor2[8] = { 0x28, 0xEE, 0x15, 0x57, 0x28, 0x16, 0x01, 0x7D};
+// uint8_t sensor1[8] = { 0x28, 0xEE, 0x66, 0x4F, 0x25, 0x16, 0x02, 0x88 };
+// uint8_t sensor2[8] = {0x28, 0xEE, 0xFF, 0x02, 0x28, 0x16, 0x01, 0x43 };
+
+uint8_t findDevices(int pin)
+{
+  OneWire ow(pin);
+
+  uint8_t address[8];
+  uint8_t count = 0;
+
+
+  if (ow.search(address))
+  {
+    Serial.print("\nuint8_t pin");
+    Serial.print(pin, DEC);
+    Serial.println("[][8] = {");
+    do {
+      count++;
+      Serial.println("  {");
+      for (uint8_t i = 0; i < 8; i++)
+      {
+        Serial.print("0x");
+        if (address[i] < 0x10) Serial.print("0");
+        Serial.print(address[i], HEX);
+        if (i < 7) Serial.print(", ");
+      }
+      Serial.println("  },");
+    } while (ow.search(address));
+
+    Serial.println("};");
+    Serial.print("// nr devices found: ");
+    Serial.println(count);
+  }
+
+  return count;
+}
 
 void setup() {
  Serial.begin(115200);
  pinMode(led1,OUTPUT);
  pinMode(led2,OUTPUT);
+ Serial.println("//\n// Start oneWireSearch.ino \n//");
+ findDevices(oneWireBus);
+ Serial.println("\n//\n// End oneWireSearch.ino \n//");
  sensors.begin();
  
  display.init();
